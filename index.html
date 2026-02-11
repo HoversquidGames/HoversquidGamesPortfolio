@@ -1,0 +1,1015 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <title>Portfolio Tabs</title>
+  <style>
+    :root{
+      --bg:#0e0f14;
+      --panel:#151823;
+      --panel2:#11131b;
+      --text:#e9ecf6;
+      --muted:#aab1c6;
+      --stroke:rgba(255,255,255,.10);
+      --stroke2:rgba(255,255,255,.14);
+      --accent:#7aa2ff;
+      --radius:18px;
+      --radius2:14px;
+      --shadow: 0 18px 50px rgba(0,0,0,.45);
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background: radial-gradient(1200px 700px at 20% 0%, rgba(122,162,255,.14), transparent 55%),
+                  radial-gradient(1200px 700px at 80% 20%, rgba(140,255,214,.10), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+      min-height:100vh;
+    }
+    .titleBar{
+  margin: 0 0 10px;
+}
+
+.titleInner{
+  position: relative;
+  width: 100%;
+  max-width: 1100px; /* matches wrap max width */
+  height: 160px;
+  margin: 0 auto;
+  border-radius: 22px;
+  overflow: hidden;
+  border: 1px solid var(--stroke);
+  box-shadow: var(--shadow);
+  background: rgba(255,255,255,.03);
+}
+.titleVideo{
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.02);
+  filter: saturate(1.05) contrast(1.05);
+}
+/* Full-bleed GIF */
+.titleGif{
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.02);
+  filter: saturate(1.05) contrast(1.05);
+}
+
+/* Slight dark overlay so text is readable */
+.titleOverlay{
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at 50% 50%, rgba(0,0,0,.22), rgba(0,0,0,.55));
+}
+
+/* Centered title text with heavy drop shadow */
+.titleText{
+  font-weight: 900;
+  letter-spacing: 1.2px;
+  text-transform: none;
+  font-size: clamp(34px, 6vw, 64px);
+  line-height: 1;
+  padding: 10px 18px;
+  border-radius: 18px;
+
+  /* heavy shadow stack */
+  text-shadow:
+    0 2px 0 rgba(0,0,0,.55),
+    0 8px 18px rgba(0,0,0,.70),
+    0 18px 38px rgba(0,0,0,.55),
+    0 28px 70px rgba(0,0,0,.45);
+
+  color: rgba(255,255,255,.96);
+}
+
+/* Optional: subtle entrance animation on load */
+@media (prefers-reduced-motion: no-preference){
+  .titleInner{
+    animation: titlePop .55s ease both;
+  }
+  @keyframes titlePop{
+    from{ opacity: 0; transform: translateY(10px); }
+    to{ opacity: 1; transform: translateY(0); }
+  }
+}
+
+@media (max-width: 520px){
+  .titleInner{ height: 130px; border-radius: 18px; }
+  .titleText{ letter-spacing: .6px; }
+}
+
+    .wrap{
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 22px 18px 34px;
+    }
+
+    /* Top tabs */
+    .tabs{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      position:sticky;
+      top:0;
+      z-index:10;
+      padding: 10px 0 14px;
+      backdrop-filter: blur(10px);
+      background: linear-gradient(to bottom, rgba(14,15,20,.85), rgba(14,15,20,.45), transparent);
+    }
+    .tab{
+      border:1px solid var(--stroke);
+      background: rgba(255,255,255,.04);
+      color: var(--muted);
+      padding: 11px 14px;
+      border-radius: 999px;
+      cursor:pointer;
+      user-select:none;
+      transition: transform .12s ease, background .2s ease, border-color .2s ease, color .2s ease;
+      font-weight: 650;
+      letter-spacing:.2px;
+    }
+    .tab:hover{ transform: translateY(-1px); border-color: var(--stroke2); background: rgba(255,255,255,.06); }
+    .tab.active{
+      color: var(--text);
+      border-color: rgba(122,162,255,.55);
+      background: rgba(122,162,255,.14);
+      box-shadow: 0 8px 30px rgba(122,162,255,.10);
+    }
+
+    /* Stage (main content area) */
+    .stage{
+      position:relative;
+      margin-top: 4px;
+      min-height: 520px;
+    }
+
+    .view{
+      position:absolute;
+      inset:0;
+      opacity:0;
+      pointer-events:none;
+      transform: translateY(18px);
+      transition: opacity .28s ease, transform .28s ease;
+    }
+    .view.active{
+      opacity:1;
+      pointer-events:auto;
+      transform: translateY(0);
+    }
+    .view.fadeout{
+      opacity:0;
+      transform: translateY(0);
+      pointer-events:none;
+    }
+
+    /* 2-column table (grid) */
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+    @media (max-width: 760px){
+      .grid{ grid-template-columns: 1fr; }
+    }
+
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border: 1px solid var(--stroke);
+      border-radius: var(--radius);
+      overflow:hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .cardTop{
+      padding: 14px 14px 10px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .cardTitle{
+      font-size: 16px;
+      font-weight: 720;
+      line-height: 1.15;
+    }
+    .cardTag{
+      font-size: 12px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border:1px solid var(--stroke);
+      color: var(--muted);
+      background: rgba(0,0,0,.18);
+      flex:0 0 auto;
+    }
+
+    .thumbBtn{
+      display:block;
+      width:100%;
+      border:0;
+      padding:0;
+      margin:0;
+      cursor:pointer;
+      background: transparent;
+    }
+
+    .thumb{
+      height: 190px;
+      background: var(--panel2);
+      position:relative;
+      overflow:hidden;
+      border-top:1px solid var(--stroke);
+    }
+
+    .thumb::before{
+      content:"";
+      position:absolute;
+      inset:-40%;
+      background:
+        radial-gradient(circle at 20% 30%, rgba(122,162,255,.35), transparent 55%),
+        radial-gradient(circle at 75% 40%, rgba(255,140,200,.22), transparent 55%),
+        radial-gradient(circle at 50% 80%, rgba(140,255,214,.18), transparent 55%);
+      transform: rotate(8deg);
+    }
+    .thumbOverlay{
+      position:absolute;
+      inset:0;
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      padding: 12px 12px;
+      background: linear-gradient(to top, rgba(0,0,0,.55), transparent 62%);
+      gap:10px;
+    }
+    .thumbHint{
+      font-size: 13px;
+      color: rgba(255,255,255,.88);
+      font-weight: 650;
+    }
+    .thumbCTA{
+      font-size: 13px;
+      color: rgba(255,255,255,.92);
+      font-weight: 750;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: rgba(122,162,255,.20);
+      border: 1px solid rgba(122,162,255,.35);
+      white-space:nowrap;
+    }
+
+    /* Panel */
+    .panel{
+      border-radius: var(--radius);
+      border: 1px solid var(--stroke);
+      background: rgba(255,255,255,.03);
+      overflow:hidden;
+      box-shadow: var(--shadow);
+    }
+    .panelHeader{
+      padding: 14px 14px 10px;
+      border-bottom:1px solid var(--stroke);
+      display:flex;
+      align-items:baseline;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .panelHeader h2{
+      margin:0;
+      font-size: 18px;
+      font-weight: 780;
+    }
+    .panelHeader .sub{
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    /* Gallery */
+    .gallery{
+      padding: 14px;
+      display:grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+    @media (max-width: 900px){ .gallery{ grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 520px){ .gallery{ grid-template-columns: 1fr; } }
+
+    .gItem{
+      height: 170px;
+      border-radius: var(--radius2);
+      border: 1px solid var(--stroke);
+      background: linear-gradient(135deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      position:relative;
+      overflow:hidden;
+    }
+    .gItem::before{
+      content:"";
+      position:absolute;
+      inset:-30%;
+      background:
+        radial-gradient(circle at 30% 30%, rgba(122,162,255,.28), transparent 58%),
+        radial-gradient(circle at 70% 60%, rgba(140,255,214,.16), transparent 60%);
+      transform: rotate(-10deg);
+    }
+    .gLabel{
+      position:absolute;
+      left:10px; bottom:10px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      color: rgba(255,255,255,.90);
+      background: rgba(0,0,0,.35);
+      border:1px solid var(--stroke);
+    }
+
+    /* YouTube embed */
+    .videoWrap{
+      padding: 14px;
+    }
+    .video{
+      width:100%;
+      aspect-ratio: 16 / 9;
+      border:1px solid var(--stroke);
+      border-radius: var(--radius2);
+      overflow:hidden;
+      background:#000;
+    }
+    iframe{ width:100%; height:100%; border:0; }
+
+    /* Link view */
+    .linkBody{
+      padding: 14px;
+      display:grid;
+      gap: 12px;
+    }
+    .linkBox{
+      border:1px solid var(--stroke);
+      background: rgba(0,0,0,.18);
+      border-radius: var(--radius2);
+      padding: 12px;
+      color: var(--muted);
+      overflow:hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .primaryBtn{
+      border:1px solid rgba(122,162,255,.45);
+      background: rgba(122,162,255,.16);
+      color: var(--text);
+      padding: 12px 14px;
+      border-radius: 999px;
+      cursor:pointer;
+      font-weight: 780;
+      width: fit-content;
+      transition: transform .12s ease, background .2s ease;
+    }
+    .primaryBtn:hover{ transform: translateY(-1px); background: rgba(122,162,255,.20); }
+
+    /* Footer with back button */
+    .footer{
+      position: sticky;
+      bottom: 0;
+      margin-top: 14px;
+      border-radius: var(--radius);
+      border: 1px solid var(--stroke);
+      background: rgba(10,11,16,.75);
+      backdrop-filter: blur(12px);
+      padding: 12px 12px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+    }
+    .footerTitle{
+      font-weight: 750;
+      color: var(--text);
+      white-space: nowrap;
+      overflow:hidden;
+      text-overflow: ellipsis;
+    }
+    .backBtn{
+      border:1px solid var(--stroke2);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 999px;
+      cursor:pointer;
+      font-weight: 720;
+      transition: transform .12s ease, background .2s ease;
+    }
+    .backBtn:hover{ transform: translateY(-1px); background: rgba(255,255,255,.08); }
+  
+
+    /* Project description (detail views) */
+    .projDesc{
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--stroke);
+      color: var(--muted);
+      line-height: 1.45;
+      font-size: 14px;
+    }
+    .projDesc:empty{ display:none; }
+
+    /* Lightbox (full-res gallery view) */
+    .lightboxStage{
+      padding: 14px;
+      display:grid;
+      gap: 12px;
+    }
+    .lightboxFrame{
+      border:1px solid var(--stroke);
+      background: rgba(0,0,0,.25);
+      border-radius: var(--radius2);
+      overflow:hidden;
+      display:grid;
+      place-items:center;
+      min-height: 320px;
+    }
+    .lightboxFrame img{
+      max-width: 100%;
+      max-height: 78vh;
+      display:block;
+    }
+    .lightboxControls{
+      display:flex;
+      gap: 10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .navBtn{
+      border:1px solid var(--stroke2);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 999px;
+      cursor:pointer;
+      font-weight: 780;
+      transition: transform .12s ease, background .2s ease;
+      user-select:none;
+    }
+    .navBtn:hover{ transform: translateY(-1px); background: rgba(255,255,255,.08); }
+    .navBtn:disabled{
+      opacity:.45;
+      cursor: not-allowed;
+      transform:none;
+    }
+    .lightboxMeta{
+      color: var(--muted);
+      font-size: 13px;
+      white-space: nowrap;
+      overflow:hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
+    .gItem{
+      /* make gallery tiles clickable */
+      cursor:pointer;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="wrap">
+<header class="titleBar" aria-label="Site title">
+  <div class="titleInner">
+    <video class="titleVideo" autoplay muted loop playsinline preload="auto">
+      <source src="assets/bobbingSquid.mp4" type="video/mp4" />
+    </video>
+
+    <div class="titleOverlay">
+      <div class="titleText">Hoversquid</div>
+    </div>
+  </div>
+</header>
+
+    <nav class="tabs" aria-label="Main navigation">
+      <button class="tab active" data-tab="games">Game Software</button>
+      <button class="tab" data-tab="vrchat">VRChat Worlds</button>
+      <button class="tab" data-tab="modeling">3D Modelling</button>
+    </nav>
+
+    <main class="stage" id="stage" aria-live="polite">
+      <!-- TAB VIEWS -->
+      <section class="view active" id="view-tab-games" data-kind="tab">
+        <div class="grid" id="grid-games"></div>
+      </section>
+      <section class="view" id="view-tab-vrchat" data-kind="tab">
+        <div class="grid" id="grid-vrchat"></div>
+      </section>
+      <section class="view" id="view-tab-modeling" data-kind="tab">
+        <div class="grid" id="grid-modeling"></div>
+      </section>
+
+      <!-- DETAIL: GALLERY -->
+      <section class="view" id="view-gallery" data-kind="detail">
+        <div class="panel">
+          <div class="panelHeader">
+            <h2 id="galleryTitle">Gallery</h2>
+            <div class="sub" id="gallerySub">Images</div>
+          </div>
+          <div class="projDesc" id="galleryDesc"></div>
+          <div class="gallery" id="galleryGrid"></div>
+        </div>
+
+        <div class="footer">
+          <div class="footerTitle" id="galleryFooterTitle">Gallery</div>
+          <button class="backBtn" id="galleryBack">← Back</button>
+        </div>
+      </section>
+
+      <!-- DETAIL: YOUTUBE -->
+      <section class="view" id="view-youtube" data-kind="detail">
+        <div class="panel">
+          <div class="panelHeader">
+            <h2 id="ytTitle">Video</h2>
+            <div class="sub">YouTube embed</div>
+          </div>
+          <div class="projDesc" id="ytDesc"></div>
+          <div class="videoWrap">
+            <div class="video">
+                <iframe
+                id="ytFrame"
+                src=""
+                title="YouTube video player"
+                referrerpolicy="strict-origin-when-cross-origin"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowfullscreen></iframe>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer">
+          <div class="footerTitle" id="ytFooterTitle">Video</div>
+          <button class="backBtn" id="ytBack">← Back</button>
+        </div>
+      </section>
+
+      <!-- DETAIL: LINK (GitHub / VRChat pages) -->
+      <section class="view" id="view-link" data-kind="detail">
+        <div class="panel">
+          <div class="panelHeader">
+            <h2 id="linkTitle">Link</h2>
+            <div class="sub" id="linkSub">External page</div>
+          </div>
+          <div class="projDesc" id="linkDesc"></div>
+          <div class="linkBody">
+            <div class="linkBox" id="linkUrlBox">https://example.com</div>
+            <button class="primaryBtn" id="linkOpenBtn">Open Link ↗</button>
+          </div>
+        </div>
+
+        <div class="footer">
+          <div class="footerTitle" id="linkFooterTitle">Link</div>
+          <button class="backBtn" id="linkBack">← Back</button>
+        </div>
+      </section>
+
+      <!-- DETAIL: LIGHTBOX (Full-res image viewer) -->
+      <section class="view" id="view-lightbox" data-kind="detail">
+        <div class="panel">
+          <div class="panelHeader">
+            <h2 id="lbTitle">Image</h2>
+            <div class="sub" id="lbSub">Full resolution</div>
+          </div>
+          <div class="lightboxStage">
+            <div class="lightboxFrame">
+              <img id="lbImg" alt="" src="" />
+            </div>
+            <div class="lightboxControls">
+              <button class="navBtn" id="lbPrev">← Prev</button>
+              <div class="lightboxMeta" id="lbMeta">1 / 1</div>
+              <button class="navBtn" id="lbNext">Next →</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer">
+          <div class="footerTitle" id="lbFooterTitle">Image</div>
+          <button class="backBtn" id="lbBack">← Back to Gallery</button>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+    const DATA = {
+      games: [
+        {
+          title: "Project World Map",
+          description: "Project World Map is an RPG Asset creation program that scales your map images to realistic sizes and allows you to use them to build a world map. This map can be accessed through displays and shared with others online as rendered game boards with aligned grid overlays.",
+          type: "youtube",
+          thumbHint: "Project World Map",
+          youtubeId: "0EEcCIoga0E",
+          thumbSrc: "thumbnails/ProjectWorldMap.jpg"
+        },
+        {
+          title: "Dynamic Initiative Tracker [TTS Mod]",
+          description: "A Tabletop Simulator initiative tracker with dynamic UI for turn order and combat flow.",
+          type: "youtube",
+          thumbHint: "Dynamic Initiative Tracker",
+          youtubeId: "r-LluQKJY8g",
+          thumbSrc: "thumbnails/DynamicInitiativeTracker.jpg"
+        },
+        {
+          title: "Reactive Crew",
+          description: "A small python server app that arranges discord reactive images in a customizable labelled grid. Can accept inputs to change the focused speaker to be used with virtual camera controls.",
+          type: "link",
+          thumbHint: "GitHub Repository",
+          url: "https://github.com/Hoversquid/Condensed_UI",
+          // needs custom thumbnail
+          thumbSrc: "thumbnails/ReactiveCrewExample.gif"
+        },
+        {
+          title: "Condensed UI [Balatro Mod]",
+          description: "A UI mod for Balatro for a condensed and readable game-state.",
+          type: "link",
+          thumbHint: "GitHub Repository",
+          url: "https://github.com/Hoversquid/ReactiveCrew",
+          // needs custom thumbnail
+          thumbSrc: "thumbnails/CondensedUI.png"
+        }
+      ],
+
+      vrchat: [
+        {
+          title: "Faker Artist",
+          description: "A social deduction game featuring art, where you must fake knowing what you're supposed to be drawning.",
+          type: "link",
+          thumbHint: "Open VRChat Page",
+          url: "https://vrchat.com/home/world/wrld_55758d1b-5928-42dd-855c-945c7997cfc3/info",
+          // user said: uses embedded image (you can paste it as thumbSrc if you have the image url)
+          thumbSrc: "thumbnails/FakerArtist.png"
+        },
+        {
+          title: "Shadow Wizards",
+          description: "A social deduction card game: use your hidden power and wits to determine your allies and defeat your rivals.",
+          type: "link",
+          thumbHint: "Open VRChat Page",
+          url: "https://vrchat.com/home/content/worlds/wrld_dda4d282-6cef-475b-8771-4b92aca321e5/edit",
+          thumbSrc: "thumbnails/ShadowWizards.png"
+        }
+      ],
+
+      modeling: [
+        {
+          title: "Gulp (VRChat Model)",
+          description: "From Pajama Sam 3: You Are What You Eat from Your Head to Your Feet.",
+          type: "link",
+          thumbHint: "Open VRChat Avatar Page",
+          url: "https://vrchat.com/home/avatar/avtr_f1320e50-7280-4c34-904f-bbb7cef2677c",
+          thumbSrc: "thumbnails/Gulp.png"
+        },
+        {
+          title: "Hämis",
+          description: "Silly little spidey from the game: Noita.",
+          type: "gallery",
+          thumbHint: "VRChat prop",
+          thumbSrc: "gallery/HamisDance.gif",
+          images: [
+            { label: "Hamis Dance", src: "gallery/HamisDance.gif" },
+            { label: "Hamis in Cave", src: "gallery/Hamis.png" }
+          ],
+        },
+        {
+          title: "Kobold Avatar (WIP)",
+          description: "Personal avatar project.",
+          type: "gallery",
+          thumbHint: "Image Gallery",
+          thumbSrc: "gallery/kobold1.png",
+          images: [
+            { label: "Kobold - Image 1", src: "gallery/kobold1.png" },
+            { label: "Kobold - Image 2", src: "gallery/kobold2.png" },
+            { label: "Kobold - Image 3", src: "gallery/kobold3.png" }
+          ]
+        }
+      ]
+    };
+
+    // -----------------------------------------
+    // DOM
+    // -----------------------------------------
+    const tabs = Array.from(document.querySelectorAll(".tab"));
+    const views = {
+      tab: {
+        games: document.getElementById("view-tab-games"),
+        vrchat: document.getElementById("view-tab-vrchat"),
+        modeling: document.getElementById("view-tab-modeling")
+      },
+      gallery: document.getElementById("view-gallery"),
+      youtube: document.getElementById("view-youtube"),
+      link: document.getElementById("view-link"),
+      lightbox: document.getElementById("view-lightbox")
+    };
+
+    const grids = {
+      games: document.getElementById("grid-games"),
+      vrchat: document.getElementById("grid-vrchat"),
+      modeling: document.getElementById("grid-modeling")
+    };
+
+    const galleryTitle = document.getElementById("galleryTitle");
+    const gallerySub = document.getElementById("gallerySub");
+    const galleryGrid = document.getElementById("galleryGrid");
+    const galleryFooterTitle = document.getElementById("galleryFooterTitle");
+    const galleryBack = document.getElementById("galleryBack");
+    const galleryDesc = document.getElementById("galleryDesc");
+
+    const ytTitle = document.getElementById("ytTitle");
+    const ytFrame = document.getElementById("ytFrame");
+    const ytFooterTitle = document.getElementById("ytFooterTitle");
+    const ytBack = document.getElementById("ytBack");
+    const ytDesc = document.getElementById("ytDesc");
+
+    const linkTitle = document.getElementById("linkTitle");
+    const linkSub = document.getElementById("linkSub");
+    const linkUrlBox = document.getElementById("linkUrlBox");
+    const linkOpenBtn = document.getElementById("linkOpenBtn");
+    const linkFooterTitle = document.getElementById("linkFooterTitle");
+    const linkBack = document.getElementById("linkBack");
+    const linkDesc = document.getElementById("linkDesc");
+
+    const lbTitle = document.getElementById("lbTitle");
+    const lbSub = document.getElementById("lbSub");
+    const lbImg = document.getElementById("lbImg");
+    const lbMeta = document.getElementById("lbMeta");
+    const lbPrev = document.getElementById("lbPrev");
+    const lbNext = document.getElementById("lbNext");
+    const lbFooterTitle = document.getElementById("lbFooterTitle");
+    const lbBack = document.getElementById("lbBack");
+
+    // Track where to go back to
+    let lastTab = "games";
+    let activeViewEl = views.tab.games;
+
+    // Full-res gallery viewer state
+    let currentGalleryItem = null;
+    let currentGalleryIndex = 0;
+
+
+    // -----------------------------------------
+    // Helpers
+    // -----------------------------------------
+    function switchView(nextEl){
+      if (nextEl === activeViewEl) return;
+
+      const prev = activeViewEl;
+      prev.classList.remove("active");
+      prev.classList.add("fadeout");
+
+      nextEl.classList.add("active");
+      nextEl.classList.remove("fadeout");
+
+      window.setTimeout(() => prev.classList.remove("fadeout"), 300);
+      activeViewEl = nextEl;
+    }
+
+    function setActiveTab(tabKey){
+      tabs.forEach(t => t.classList.toggle("active", t.dataset.tab === tabKey));
+      // stop video when leaving youtube view
+      ytFrame.src = "";
+      switchView(views.tab[tabKey]);
+    }
+
+    function createCard(item, tabKey){
+      const card = document.createElement("div");
+      card.className = "card";
+
+      const top = document.createElement("div");
+      top.className = "cardTop";
+
+      const title = document.createElement("div");
+      title.className = "cardTitle";
+      title.textContent = item.title;
+
+      const tag = document.createElement("div");
+      tag.className = "cardTag";
+      tag.textContent =
+        item.type === "gallery" ? "Gallery" :
+        item.type === "youtube" ? "YouTube" :
+        "Link";
+
+      top.appendChild(title);
+      top.appendChild(tag);
+
+      const btn = document.createElement("button");
+      btn.className = "thumbBtn";
+      btn.type = "button";
+
+      const thumb = document.createElement("div");
+      thumb.className = "thumb";
+
+      if (item.thumbSrc){
+        thumb.style.background = "#0b0c10";
+        thumb.style.backgroundImage = `url('${item.thumbSrc}')`;
+        thumb.style.backgroundSize = "cover";
+        thumb.style.backgroundPosition = "center";
+      }
+
+      const overlay = document.createElement("div");
+      overlay.className = "thumbOverlay";
+
+      const hint = document.createElement("div");
+      hint.className = "thumbHint";
+      hint.textContent = item.thumbHint || "Open";
+
+      const cta = document.createElement("div");
+      cta.className = "thumbCTA";
+      cta.textContent =
+        item.type === "gallery" ? "View →" :
+        item.type === "youtube" ? "Play →" :
+        "Open →";
+
+      overlay.appendChild(hint);
+      overlay.appendChild(cta);
+      thumb.appendChild(overlay);
+      btn.appendChild(thumb);
+
+      btn.addEventListener("click", () => {
+        lastTab = tabKey;
+
+        if (item.type === "gallery") openGallery(item);
+        else if (item.type === "youtube") openYouTube(item);
+        else openLink(item);
+      });
+
+      card.appendChild(top);
+      card.appendChild(btn);
+      return card;
+    }
+
+    function renderTab(tabKey){
+      const grid = grids[tabKey];
+      grid.innerHTML = "";
+      (DATA[tabKey] || []).forEach(item => grid.appendChild(createCard(item, tabKey)));
+    }
+
+    // -----------------------------------------
+    // Detail views
+    // -----------------------------------------
+    function openGallery(item){
+      currentGalleryItem = item;
+      galleryTitle.textContent = item.title;
+      galleryFooterTitle.textContent = item.title;
+      galleryDesc.textContent = item.description || "";
+
+      const imgs = item.images || [];
+      gallerySub.textContent = `${imgs.length} item${imgs.length === 1 ? "" : "s"}`;
+
+      galleryGrid.innerHTML = "";
+      imgs.forEach((img, idx) => {
+        const g = document.createElement("button");
+        g.type = "button";
+        g.className = "gItem";
+
+        if (img.src){
+          g.style.backgroundImage = `url('${img.src}')`;
+          g.style.backgroundSize = "cover";
+          g.style.backgroundPosition = "center";
+        }
+
+        const label = document.createElement("div");
+        label.className = "gLabel";
+        label.textContent = img.label || `Image ${idx+1}`;
+
+        g.appendChild(label);
+
+        g.addEventListener("click", () => {
+          openLightbox(idx);
+        });
+
+        galleryGrid.appendChild(g);
+      });
+
+      switchView(views.gallery);
+    }
+
+    function openYouTube(item){
+      ytTitle.textContent = item.title;
+      ytFooterTitle.textContent = item.title;
+      ytDesc.textContent = item.description || "";
+
+      const id = item.youtubeId || "";
+      ytFrame.src = id ? `https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}` : "";
+
+      switchView(views.youtube);
+    }
+
+    function openLink(item){
+      linkTitle.textContent = item.title;
+      linkFooterTitle.textContent = item.title;
+      linkDesc.textContent = item.description || "";
+
+      linkSub.textContent = "External page";
+      linkUrlBox.textContent = item.url || "";
+      linkOpenBtn.onclick = () => {
+        if (!item.url) return;
+        window.open(item.url, "_blank", "noopener,noreferrer");
+      };
+
+      switchView(views.link);
+    }
+
+
+    function openLightbox(idx){
+      if (!currentGalleryItem) return;
+      const imgs = currentGalleryItem.images || [];
+      if (!imgs.length) return;
+
+      currentGalleryIndex = idx;
+      if (currentGalleryIndex < 0) currentGalleryIndex = 0;
+      if (currentGalleryIndex >= imgs.length) currentGalleryIndex = imgs.length - 1;
+
+      updateLightbox();
+      switchView(views.lightbox);
+    }
+
+    function updateLightbox(){
+      if (!currentGalleryItem) return;
+      const imgs = currentGalleryItem.images || [];
+      if (!imgs.length) return;
+
+      const img = imgs[currentGalleryIndex] || {};
+      lbTitle.textContent = currentGalleryItem.title;
+      lbFooterTitle.textContent = currentGalleryItem.title;
+
+      lbSub.textContent = img.label || `Image ${currentGalleryIndex + 1}`;
+      lbImg.src = (img.fullSrc || img.src || "");
+      lbImg.alt = img.label || currentGalleryItem.title;
+
+      lbMeta.textContent = `${currentGalleryIndex + 1} / ${imgs.length}`;
+
+      const multi = imgs.length > 1;
+      lbPrev.disabled = !multi;
+      lbNext.disabled = !multi;
+    }
+
+    function closeLightbox(){
+      switchView(views.gallery);
+    }
+
+    function backToTab(){
+      ytFrame.src = "";
+      setActiveTab(lastTab);
+    }
+
+    // -----------------------------------------
+    // Wiring
+    // -----------------------------------------
+    tabs.forEach(btn => {
+      btn.addEventListener("click", () => {
+        const tabKey = btn.dataset.tab;
+        lastTab = tabKey;
+        setActiveTab(tabKey);
+      });
+    });
+
+    galleryBack.addEventListener("click", backToTab);
+    ytBack.addEventListener("click", backToTab);
+    linkBack.addEventListener("click", backToTab);
+
+    // Lightbox controls
+    lbPrev.addEventListener("click", () => {
+      if (!currentGalleryItem) return;
+      const imgs = currentGalleryItem.images || [];
+      if (imgs.length <= 1) return;
+      currentGalleryIndex = (currentGalleryIndex - 1 + imgs.length) % imgs.length;
+      updateLightbox();
+    });
+
+    lbNext.addEventListener("click", () => {
+      if (!currentGalleryItem) return;
+      const imgs = currentGalleryItem.images || [];
+      if (imgs.length <= 1) return;
+      currentGalleryIndex = (currentGalleryIndex + 1) % imgs.length;
+      updateLightbox();
+    });
+
+    lbBack.addEventListener("click", closeLightbox);
+
+    document.addEventListener("keydown", (e) => {
+      if (activeViewEl !== views.lightbox) return;
+      if (e.key === "Escape") { closeLightbox(); return; }
+      if (e.key === "ArrowLeft") { lbPrev.click(); return; }
+      if (e.key === "ArrowRight") { lbNext.click(); return; }
+    });
+
+    // Initial render
+    renderTab("games");
+    renderTab("vrchat");
+    renderTab("modeling");
+  </script>
+</body>
+</html>
