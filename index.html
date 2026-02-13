@@ -1007,7 +1007,9 @@
       btn.addEventListener("click", () => {
         const tabKey = btn.dataset.tab;
         lastTab = tabKey;
+        setHashForTab(tabKey);
         setActiveTab(tabKey);
+        setPathForTab(tabKey);
       });
     });
 
@@ -1041,10 +1043,82 @@
       if (e.key === "ArrowRight") { lbNext.click(); return; }
     });
 
+    const ROUTES = {
+    "/gamesoftware": "games",
+    "/games": "games",
+    "/vrchatworlds": "vrchat",
+    "/vrchat": "vrchat",
+    "/3dmodelling": "modeling",
+    "/3dmodeling": "modeling",
+    "/modeling": "modeling"
+    };
+
+    function normalizePath(p){
+    if (!p) return "/";
+    // remove trailing slash, lowercase
+    p = p.toLowerCase().replace(/\/+$/, "");
+    return p === "" ? "/" : p;
+    }
+
+    function tabFromPath(){
+    const p = normalizePath(location.pathname);
+    return ROUTES[p] || null;
+    }
+
+    function setPathForTab(tabKey){
+    const path =
+        tabKey === "games" ? "/GameSoftware" :
+        tabKey === "vrchat" ? "/VRChatWorlds" :
+        "/3DModelling";
+
+    // Keep it purely client-side
+    history.pushState({ tab: tabKey }, "", path);
+    }
+
+    function tabFromRoute(){
+  // supports: #/VRChatWorlds or #VRChatWorlds
+  const raw = (location.hash || "").replace(/^#\/?/, "");
+  const slug = raw.toLowerCase().replace(/\s+/g, "");
+
+  if (slug === "vrchatworlds" || slug === "vrchat") return "vrchat";
+  if (slug === "gamesoftware" || slug === "games") return "games";
+  if (slug === "3dmodelling" || slug === "3dmodeling" || slug === "modeling") return "modeling";
+  return null;
+}
+
+function setHashForTab(tabKey){
+  const hash =
+    tabKey === "games" ? "#/GameSoftware" :
+    tabKey === "vrchat" ? "#/VRChatWorlds" :
+    "#/3DModelling";
+  location.hash = hash;
+}
+
+    window.addEventListener("popstate", () => {
+    const routeTab = tabFromPath();
+    if (routeTab){
+        lastTab = routeTab;
+        setActiveTab(routeTab);
+    }
+    });
+
+    window.addEventListener("hashchange", () => {
+        const t = tabFromRoute();
+        if (t) setActiveTab(t);
+    });
+
     // Initial render
     renderTab("games");
     renderTab("vrchat");
     renderTab("modeling");
+
+    // Pick starting tab from URL path, fallback to games
+    const startTab = tabFromPath() || "games";
+    lastTab = startTab;
+    setActiveTab(startTab);
+
+    // If you want the URL cleaned up to a canonical path on first load:
+    setPathForTab(startTab);
   </script>
 </body>
 </html>
